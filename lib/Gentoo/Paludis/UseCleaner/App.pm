@@ -21,14 +21,59 @@ sub run {
     Switch("clobber-rejects|y")->default(1),
     Switch("quiet|q")->default(1),
     Switch("silent|s")->default(0),
+    Switch("help|h")->anycase(),
+  );
+  my %doc = (
+    'conf'           => {},
+    'output'         => {},
+    'rejects'        => {},
+    'clobber-output' => {},
+    'quiet'          => {},
+    'silent'         => {},
+    'help'           => {},
   );
 
   my $got = Getopt::Lucid->getopt( \@spec );
+  if ( $got->get_help ) {
+
+    for my $rule (@spec) {
+        my $name = $rule->{canon};
+        my $doc = $doc{$name};
+        my @switches = split /\|/, $rule->{name};
+        for ( @switches ){
+            if ( length $_ < 2 ){
+                $_ =~ s/^/-/;
+            } else {
+                $_ =~ s/^/--/;
+            }
+        }
+        @switches = sort { length($a) <=> length( $b  ) } @switches;
+        if( $rule->{type} eq 'parameter' ){
+            @switches = map { ( "$_ \$x",   "$_=\$x" )   } @switches;
+        } elsif( $rule->{type} eq 'switch') {
+            @switches = map {
+                my $i = $_;
+                my $j = $i;
+                $j =~ s/^--/--no-/;
+                ( $j eq $i ) ? $i : ( $i , $j );
+            } @switches;
+        }
+        printf "%-50s", join " ", @switches;
+        print " ";
+        print "=>";
+        print ( defined $rule->{default} ? $rule->{default} : 'undef' );
+        print " ";
+        print "\n";
+
+    }
+    exit;
+
+  }
 
   my %flags = ();
 
   if ( $got->get_conf eq '-' ) {
-    $flags{input} = *STDIN;
+    $flags{input} = \*STDIN;
   }
   else {
     open my $fh, '<', $got->get_conf or die "Cant open " . $got->get_conf . " $@ $? $!\n";
@@ -36,7 +81,7 @@ sub run {
   }
 
   if ( $got->get_output eq '-' ) {
-    $flags{output} = *STDOUT;
+    $flags{output} = \*STDOUT;
   }
   else {
     if ( -e $got->get_output && !$got->get_clobber_output ) {
@@ -47,7 +92,7 @@ sub run {
   }
 
   if ( $got->get_rejects eq '-' ) {
-    $flags{rejects} = *STDERR;
+    $flags{rejects} = \*STDERR;
   }
   else {
     if ( -e $got->get_rejects && !$got->get_clobber_rejects ) {

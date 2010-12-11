@@ -43,6 +43,7 @@ sub skip_star {
 
 sub dot_trace {
   my ( $self, $symbol ) = @_;
+  return unless $self->show_dot_trace;
   $symbol ||= '.';
   $self->fd_dot_trace->print($symbol);
 }
@@ -59,7 +60,7 @@ sub full_rule {
   return unless $self->show_rules;
   $extras->{'use'} = $use;
   my @extradata = map { sprintf "%s = [ %s ]", $_, join( ', ', @{ $extras->{$_} } ) } keys %$extras;
-  $self->debug->printf( "RULE: spec = $spec %s\n", join( ' ', @extradata ) );
+  $self->fd_debug->printf( "RULE: spec = $spec %s\n", join( ' ', @extradata ) );
 
 }
 
