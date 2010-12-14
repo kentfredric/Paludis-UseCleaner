@@ -2,30 +2,12 @@ use strict;
 use warnings;
 
 package Paludis::UseCleaner;
+BEGIN {
+  $Paludis::UseCleaner::VERSION = '0.01000307';
+}
 
 # ABSTRACT: Remove cruft from your use.conf
 
-=head1 SYNOPSIS
-
-This module handles the core behaviour of the Use Cleaner, to be consumed inside other applications.
-
-For a "Just Use it" interface, you want L<paludis-usecleaner.pl> and L<Paludis::UseCleaner::App>
-
-    my $cleaner = Paludis::UseCleaner->new(
-        input     => somefd,
-        output    => somefd,
-        rejects   => somefd,
-        debug     => fd_for_debugging
-        dot_trace => fd_for_dot_traces,
-      ( # Optional
-        display_ui => $object_to_handle_debug_messages
-        display_ui_class => $classname_to_construct_a_display_ui
-        display_ui_generator => $coderef_to_generate_object_for_display_ui
-      )
-    );
-
-    $cleaner->do_work();
-=cut
 
 use Moose;
 use MooseX::Types::Moose qw( :all );
@@ -37,88 +19,30 @@ use Class::Load 0.06 qw( load_class );
 use Moose::Util::TypeConstraints qw( class_type );
 use MooseX::Has::Sugar;
 
-=attr input
-
-    $cleaner->input( \*STDIN );
-    $cleaner->input( $read_fh );
-
-
-=cut
 
 has 'input' => ( isa => GlobRef, rw, required );
 
-=attr output
-
-    $cleaner->output( \*STDOUT );
-    $cleaner->output( $write_fh );
-
-=cut
 
 has 'output' => ( isa => GlobRef, rw, required );
 
-=attr rejects
-
-    $cleaner->rejects( \*STDOUT );
-    $cleaner->rejects( $write_fh );
-
-=cut
 
 has 'rejects' => ( isa => GlobRef, rw, required );
 
-=attr debug
-
-    $cleaner->debug( \*STDERR );
-    $cleaner->debug( $write_fh );
-
-
-=cut
 
 has 'debug' => ( isa => GlobRef, rw, required );
 
-=attr dot_trace
-
-    $cleaner->dot_trace( \*STDERR );
-    $cleaner->dot_trace( $write_fh );
-
-=cut
 
 has 'dot_trace' => ( isa => GlobRef, rw, required );
 
-=attr display_ui
-
-    $cleaner->display_ui( $object );
-
-=cut
 
 has 'display_ui' => ( isa => Object, rw, lazy_build );
 
-=attr display_ui_class
-
-    $cleaner->display_ui_class( 'Some::Class::Name' );
-
-=cut
 
 has 'display_ui_class' => ( isa => ModuleName, rw, lazy_build );
 
-=attr display_ui_generator
-
-    $cleaner->display_ui_generator( sub {
-        my $self = shift;
-        ....
-        return $object;
-    });
-
-=cut
 
 has 'display_ui_generator' => ( isa => CodeRef, rw, lazy_build );
 
-=method do_work
-
-    $cleaner->do_work();
-
-Executes the various transformations and produces the cleaned output from the input.
-
-=cut
 
 sub do_work {
 
@@ -162,13 +86,6 @@ sub do_work {
   return;
 }
 
-=p_method __tokenize
-
-    my @line = __tokenize( $line );
-
-B<STRIPPED>: This method is made invisible to outside code after compile.
-
-=cut
 
 sub __tokenize {
   my $line = shift;
@@ -176,13 +93,6 @@ sub __tokenize {
   return split /\s+/, $line;
 }
 
-=p_method __is_empty_line
-
-    if( __is_empty_line(@line) ){ }
-
-B<STRIPPED>: This method is made invisible to outside code after compile.
-
-=cut
 
 ## no critic (RequireArgUnpacking)
 
@@ -190,13 +100,6 @@ sub __is_empty_line {
   return not @_;
 }
 
-=p_method __is_star_rule
-
-    if( __is_star_rule(@line) ){ }
-
-B<STRIPPED>: This method is made invisible to outside code after compile.
-
-=cut
 
 ## no critic (RequireArgUnpacking)
 
@@ -204,13 +107,6 @@ sub __is_star_rule {
   return $_[0] =~ /\*/;
 }
 
-=p_method __tokenparse
-
-    my ( $spec, $use, $extras ) = __tokenparse( @line );
-
-B<STRIPPED>: This method is made invisible to outside code after compile.
-
-=cut
 
 sub __tokenparse {
   my @tokens   = @_;
@@ -223,14 +119,6 @@ sub __tokenparse {
   return ( $spec, \@useflags, \%extras );
 }
 
-=p_method __extract_flags
-
-    my ( @flags ) = __extract_flags( \@tokens );
-
-
-B<STRIPPED>: This method is made invisible to outside code after compile.
-
-=cut
 
 ## no critic (ProhibitDoubleSigils)
 
@@ -243,13 +131,6 @@ sub __extract_flags {
   return @out;
 }
 
-=p_method __extract_label
-
-    my ( $label ) = __extract_label( \@tokens );
-
-B<STRIPPED>: This method is made invisible to outside code after compile.
-
-=cut
 
 ## no critic (ProhibitDoubleSigils)
 sub __extract_label {
@@ -261,21 +142,11 @@ sub __extract_label {
   return $result;
 }
 
-=p_method _build_display_ui_class
-
-    my $class = $cleaner->_build_display_ui_class();
-
-=cut
 
 sub _build_display_ui_class {
   return 'Paludis::UseCleaner::ConsoleUI';
 }
 
-=p_method _build_display_ui_generator
-
-    my $generator  $cleaner->_build_display_ui_generator();
-
-=cut
 
 sub _build_display_ui_generator {
   my $self = shift;
@@ -288,11 +159,6 @@ sub _build_display_ui_generator {
   };
 }
 
-=p_method _build_display_ui
-
-    my $object = $cleaner->_build_display_ui();
-
-=cut
 
 sub _build_display_ui {
   my $self = shift;
@@ -305,3 +171,150 @@ no Moose::Util::TypeConstraints;
 __PACKAGE__->meta->make_immutable;
 
 1;
+
+__END__
+=pod
+
+=head1 NAME
+
+Paludis::UseCleaner - Remove cruft from your use.conf
+
+=head1 VERSION
+
+version 0.01000307
+
+=head1 SYNOPSIS
+
+This module handles the core behaviour of the Use Cleaner, to be consumed inside other applications.
+
+For a "Just Use it" interface, you want L<paludis-usecleaner.pl> and L<Paludis::UseCleaner::App>
+
+    my $cleaner = Paludis::UseCleaner->new(
+        input     => somefd,
+        output    => somefd,
+        rejects   => somefd,
+        debug     => fd_for_debugging
+        dot_trace => fd_for_dot_traces,
+      ( # Optional
+        display_ui => $object_to_handle_debug_messages
+        display_ui_class => $classname_to_construct_a_display_ui
+        display_ui_generator => $coderef_to_generate_object_for_display_ui
+      )
+    );
+
+    $cleaner->do_work();
+
+=head1 METHODS
+
+=head2 do_work
+
+    $cleaner->do_work();
+
+Executes the various transformations and produces the cleaned output from the input.
+
+=head1 ATTRIBUTES
+
+=head2 input
+
+    $cleaner->input( \*STDIN );
+    $cleaner->input( $read_fh );
+
+=head2 output
+
+    $cleaner->output( \*STDOUT );
+    $cleaner->output( $write_fh );
+
+=head2 rejects
+
+    $cleaner->rejects( \*STDOUT );
+    $cleaner->rejects( $write_fh );
+
+=head2 debug
+
+    $cleaner->debug( \*STDERR );
+    $cleaner->debug( $write_fh );
+
+=head2 dot_trace
+
+    $cleaner->dot_trace( \*STDERR );
+    $cleaner->dot_trace( $write_fh );
+
+=head2 display_ui
+
+    $cleaner->display_ui( $object );
+
+=head2 display_ui_class
+
+    $cleaner->display_ui_class( 'Some::Class::Name' );
+
+=head2 display_ui_generator
+
+    $cleaner->display_ui_generator( sub {
+        my $self = shift;
+        ....
+        return $object;
+    });
+
+=head1 PRIVATE METHODS
+
+=head2 __tokenize
+
+    my @line = __tokenize( $line );
+
+B<STRIPPED>: This method is made invisible to outside code after compile.
+
+=head2 __is_empty_line
+
+    if( __is_empty_line(@line) ){ }
+
+B<STRIPPED>: This method is made invisible to outside code after compile.
+
+=head2 __is_star_rule
+
+    if( __is_star_rule(@line) ){ }
+
+B<STRIPPED>: This method is made invisible to outside code after compile.
+
+=head2 __tokenparse
+
+    my ( $spec, $use, $extras ) = __tokenparse( @line );
+
+B<STRIPPED>: This method is made invisible to outside code after compile.
+
+=head2 __extract_flags
+
+    my ( @flags ) = __extract_flags( \@tokens );
+
+B<STRIPPED>: This method is made invisible to outside code after compile.
+
+=head2 __extract_label
+
+    my ( $label ) = __extract_label( \@tokens );
+
+B<STRIPPED>: This method is made invisible to outside code after compile.
+
+=head2 _build_display_ui_class
+
+    my $class = $cleaner->_build_display_ui_class();
+
+=head2 _build_display_ui_generator
+
+    my $generator  $cleaner->_build_display_ui_generator();
+
+=head2 _build_display_ui
+
+    my $object = $cleaner->_build_display_ui();
+
+=head1 AUTHOR
+
+Kent Fredric <kentnl@cpan.org>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2010 by Kent Fredric <kentnl@cpan.org>.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
+=cut
+
