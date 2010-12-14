@@ -64,15 +64,14 @@ Show a brief command line summary.
 
 =cut
 
-
 use Getopt::Lucid qw( :all );
 
-sub run {
-  my @spec = (
+sub _gen_spec {
+  return (
     Param(
       "conf|c",
       sub {
-        return 1 if $_ eq '-';
+        return 1 if $_ eq q{-};
         return 1 if -e $_ && -f $_;
         return;
       }
@@ -85,7 +84,11 @@ sub run {
     Switch("silent|s")->default(0),
     Switch("help|h")->anycase(),
   );
-  my %doc = (
+}
+
+sub _help {
+  my @spec = @_;
+  my %doc  = (
     'conf'           => {},
     'output'         => {},
     'rejects'        => {},
@@ -95,114 +98,146 @@ sub run {
     'help'           => {},
   );
 
+  for my $rule (@spec) {
+    my $name     = $rule->{canon};
+    my $doc      = $doc{$name};
+    my @switches = split /\|/, $rule->{name};
+    for (@switches) {
+      if ( ( length $_ ) < 2 ) {
+        $_ =~ s/^/-/;
+      }
+      else {
+        $_ =~ s/^/--/;
+      }
+    }
+    @switches = sort { ( length $a ) <=> ( length $b ) } @switches;
+    ## no critic(ProhibitComplexMappings)
+    if ( $rule->{type} eq 'parameter' ) {
+      @switches = map { ( "$_ \$x", "$_=\$x" ) } @switches;
+    }
+    elsif ( $rule->{type} eq 'switch' ) {
+      @switches = map {
+        my $i = $_;
+        my $j = $i;
+        $j =~ s/^--/--no-/;
+        ( $j eq $i ) ? $i : ( $i, $j );
+      } @switches;
+    }
+    printf qq{%-50s => %s \n}, ( join q{ }, @switches ), ( defined $rule->{default} ? $rule->{default} : 'undef' );
+
+  }
+  return;
+}
+
+sub _read_fd {
+  my $source = shift;
+  ## no critic ( ProhibitPunctuationVars )
+  open my $fh, '<', $source or die "Cant open $source $@ $? $!\n";
+  return $fh;
+}
+
+sub _write_fd {
+  my $source = shift;
+  ## no critic ( ProhibitPunctuationVars )
+  open my $fh, '>', $source or die "Cant open $source $@ $? $!\n";
+  return $fh;
+}
+
+sub _silent_args {
+  return (
+    show_skip_empty => 0,
+    show_skip_star  => 0,
+    show_dot_trace  => 0,
+    show_clean      => 0,
+    show_rules      => 0,
+  );
+}
+
+sub _quiet_args {
+  return (
+    show_skip_empty => 0,
+    show_skip_star  => 0,
+    show_dot_trace  => 1,
+    show_clean      => 0,
+    show_rules      => 0,
+  );
+
+}
+
+sub _noisy_args {
+  return (
+    show_skip_empty => 1,
+    show_skip_star  => 1,
+    show_dot_trace  => 0,
+    show_clean      => 1,
+    show_rules      => 1,
+  );
+
+}
+
+=method run
+
+Execute the code.
+
+=cut
+sub run {
+  my @spec = _gen_spec();
+
   my $got = Getopt::Lucid->getopt( \@spec );
   if ( $got->get_help ) {
-
-    for my $rule (@spec) {
-        my $name = $rule->{canon};
-        my $doc = $doc{$name};
-        my @switches = split /\|/, $rule->{name};
-        for ( @switches ){
-            if ( length $_ < 2 ){
-                $_ =~ s/^/-/;
-            } else {
-                $_ =~ s/^/--/;
-            }
-        }
-        @switches = sort { length($a) <=> length( $b  ) } @switches;
-        if( $rule->{type} eq 'parameter' ){
-            @switches = map { ( "$_ \$x",   "$_=\$x" )   } @switches;
-        } elsif( $rule->{type} eq 'switch') {
-            @switches = map {
-                my $i = $_;
-                my $j = $i;
-                $j =~ s/^--/--no-/;
-                ( $j eq $i ) ? $i : ( $i , $j );
-            } @switches;
-        }
-        printf "%-50s", join " ", @switches;
-        print " ";
-        print "=>";
-        print ( defined $rule->{default} ? $rule->{default} : 'undef' );
-        print " ";
-        print "\n";
-
-    }
+    _help(@spec);
     exit;
 
   }
 
   my %flags = ();
 
-  if ( $got->get_conf eq '-' ) {
+  if ( $got->get_conf eq q{-} ) {
     $flags{input} = \*STDIN;
   }
   else {
-    open my $fh, '<', $got->get_conf or die "Cant open " . $got->get_conf . " $@ $? $!\n";
-    $flags{input} = $fh;
+    $flags{input} = _read_fd( $got->get_conf );
   }
 
-  if ( $got->get_output eq '-' ) {
+  if ( $got->get_output eq q{-} ) {
     $flags{output} = \*STDOUT;
   }
   else {
     if ( -e $got->get_output && !$got->get_clobber_output ) {
       die $got->output . " Exists and --no-clobber-output is specified\n";
     }
-    open my $fh, '>', $got->get_output or die "Cant open " . $got->get_output . " $@ $? $!\n";
-    $flags{output} = $fh;
+    $flags{output} = _write_fd( $got->get_output );
   }
 
-  if ( $got->get_rejects eq '-' ) {
+  if ( $got->get_rejects eq q{-} ) {
     $flags{rejects} = \*STDERR;
   }
   else {
     if ( -e $got->get_rejects && !$got->get_clobber_rejects ) {
       die $got->get_rejects . " Exists and --no-clobber-rejects is specified\n";
     }
-    open my $fh, '>', $got->get_rejects or die "Cant open " . $got->get_rejects . " $@ $? $!\n";
-    $flags{rejects} = $fh;
+    $flags{rejects} = _write_fd( $got->get_rejects );
   }
 
   $flags{debug}     = \*STDERR;
   $flags{dot_trace} = \*STDERR;
 
-  my %display_args = ();
-  $display_args{fd_debug}     = $flags{debug};
-  $display_args{fd_dot_trace} = $flags{dot_trace};
-
-  if ( $got->get_silent ) {
-    $display_args{show_skip_empty} = 0;
-    $display_args{show_skip_star}  = 0;
-    $display_args{show_dot_trace}  = 0;
-    $display_args{show_clean}      = 0;
-    $display_args{show_rules}      = 0;
-  }
-  elsif ( $got->get_quiet ) {
-    $display_args{show_skip_empty} = 0;
-    $display_args{show_skip_star}  = 0;
-    $display_args{show_dot_trace}  = 1;
-    $display_args{show_clean}      = 0;
-    $display_args{show_rules}      = 0;
-  }
-  else {
-    $display_args{show_skip_empty} = 1;
-    $display_args{show_skip_star}  = 1;
-    $display_args{show_dot_trace}  = 0;
-    $display_args{show_clean}      = 1;
-    $display_args{show_rules}      = 1;
-  }
+  ## no critic (ProhibitMagicNumbers)
 
   $flags{display_ui_generator} = sub {
-        my $self = shift;
-        require Class::Load;
-        Class::Load->VERSION(0.06);
-        Class::Load::load_class( $self->display_ui_class );
-        return $self->display_ui_class->new(
-            %display_args,
-            fd_debug => $self->debug,
-            fd_dot_trace => $self->dot_trace,
-        );
+    my $self = shift;
+    require Class::Load;
+    Class::Load->VERSION(0.06);
+    Class::Load::load_class( $self->display_ui_class );
+    return $self->display_ui_class->new(
+      do {
+        if    ( $got->get_silent ) { _silent_args() }
+        elsif ( $got->get_quiet )  { _quiet_args() }
+        else                       { _noisy_arg() }
+      },
+      fd_debug     => $self->debug,
+      fd_dot_trace => $self->dot_trace,
+    );
 
   };
   require Class::Load;

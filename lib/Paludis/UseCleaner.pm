@@ -45,7 +45,7 @@ use MooseX::Has::Sugar;
 
 =cut
 
-has 'input'                => ( isa => GlobRef,    rw, required );
+has 'input' => ( isa => GlobRef, rw, required );
 
 =attr output
 
@@ -54,7 +54,7 @@ has 'input'                => ( isa => GlobRef,    rw, required );
 
 =cut
 
-has 'output'               => ( isa => GlobRef,    rw, required );
+has 'output' => ( isa => GlobRef, rw, required );
 
 =attr rejects
 
@@ -63,7 +63,7 @@ has 'output'               => ( isa => GlobRef,    rw, required );
 
 =cut
 
-has 'rejects'              => ( isa => GlobRef,    rw, required );
+has 'rejects' => ( isa => GlobRef, rw, required );
 
 =attr debug
 
@@ -73,7 +73,7 @@ has 'rejects'              => ( isa => GlobRef,    rw, required );
 
 =cut
 
-has 'debug'                => ( isa => GlobRef,    rw, required );
+has 'debug' => ( isa => GlobRef, rw, required );
 
 =attr dot_trace
 
@@ -82,7 +82,7 @@ has 'debug'                => ( isa => GlobRef,    rw, required );
 
 =cut
 
-has 'dot_trace'            => ( isa => GlobRef,    rw, required );
+has 'dot_trace' => ( isa => GlobRef, rw, required );
 
 =attr display_ui
 
@@ -90,7 +90,7 @@ has 'dot_trace'            => ( isa => GlobRef,    rw, required );
 
 =cut
 
-has 'display_ui'           => ( isa => Object,     rw, lazy_build );
+has 'display_ui' => ( isa => Object, rw, lazy_build );
 
 =attr display_ui_class
 
@@ -98,7 +98,7 @@ has 'display_ui'           => ( isa => Object,     rw, lazy_build );
 
 =cut
 
-has 'display_ui_class'     => ( isa => ModuleName, rw, lazy_build );
+has 'display_ui_class' => ( isa => ModuleName, rw, lazy_build );
 
 =attr display_ui_generator
 
@@ -110,13 +110,13 @@ has 'display_ui_class'     => ( isa => ModuleName, rw, lazy_build );
 
 =cut
 
-has 'display_ui_generator' => ( isa => CodeRef,    rw, lazy_build );
+has 'display_ui_generator' => ( isa => CodeRef, rw, lazy_build );
 
 =method do_work
 
     $cleaner->do_work();
 
-Executes the various tranformations and produces the cleaned output from the input.
+Executes the various transformations and produces the cleaned output from the input.
 
 =cut
 
@@ -159,6 +159,7 @@ sub do_work {
 
     $self->output->print($line);
   }
+  return;
 }
 
 =p_method __tokenize
@@ -183,6 +184,8 @@ B<STRIPPED>: This method is made invisible to outside code after compile.
 
 =cut
 
+## no critic (RequireArgUnpacking)
+
 sub __is_empty_line {
   return not @_;
 }
@@ -194,6 +197,8 @@ sub __is_empty_line {
 B<STRIPPED>: This method is made invisible to outside code after compile.
 
 =cut
+
+## no critic (RequireArgUnpacking)
 
 sub __is_star_rule {
   return $_[0] =~ /\*/;
@@ -227,6 +232,8 @@ B<STRIPPED>: This method is made invisible to outside code after compile.
 
 =cut
 
+## no critic (ProhibitDoubleSigils)
+
 sub __extract_flags {
   my $in = shift;
   my @out;
@@ -244,6 +251,7 @@ B<STRIPPED>: This method is made invisible to outside code after compile.
 
 =cut
 
+## no critic (ProhibitDoubleSigils)
 sub __extract_label {
   my $in = shift;
   return if not exists $in->[0];
@@ -290,5 +298,10 @@ sub _build_display_ui {
   my $self = shift;
   return $self->display_ui_generator()->($self);
 }
+
+no Moose;
+no Moose::Util::TypeConstraints;
+
+__PACKAGE__->meta->make_immutable;
 
 1;

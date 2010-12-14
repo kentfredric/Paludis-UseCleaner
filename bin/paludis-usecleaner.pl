@@ -2,13 +2,15 @@
 use strict;
 use warnings;
 
-
 package # HIDE THIS.
-    paludis_usecleaner;
+    Paludis::UseCleaner::App::Stub;
+
+## no critic( Modules::RequireVersionVar )
+    #
+#ABSTRACT: command line client for Paludis::UseCleaner
 
 #PODNAME: paludis-usecleaner.pl
 
-#ABSTRACT: command line client for Paludis::UseCleaner
 
 =head1 SYNOPSIS
 

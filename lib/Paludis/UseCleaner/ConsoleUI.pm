@@ -32,7 +32,7 @@ B<default> is C<true>
 
 =cut
 
-has show_skip_star  => ( isa => Bool, rw, default => 1 );
+has show_skip_star => ( isa => Bool, rw, default => 1 );
 
 =attr show_dot_trace
 
@@ -43,7 +43,7 @@ B<default> is C<false>
 
 =cut
 
-has show_dot_trace  => ( isa => Bool, rw, default => 0 );
+has show_dot_trace => ( isa => Bool, rw, default => 0 );
 
 =attr show_clean
 
@@ -54,7 +54,7 @@ B<default> is C<true>
 
 =cut
 
-has show_clean      => ( isa => Bool, rw, default => 1 );
+has show_clean => ( isa => Bool, rw, default => 1 );
 
 =attr show_rules
 
@@ -65,7 +65,7 @@ B<default> is C<true>
 
 =cut
 
-has show_rules      => ( isa => Bool, rw, default => 1 );
+has show_rules => ( isa => Bool, rw, default => 1 );
 
 =attr fd_debug
 
@@ -74,7 +74,7 @@ has show_rules      => ( isa => Bool, rw, default => 1 );
 
 =cut
 
-has fd_debug     => ( isa => GlobRef, rw, required );
+has fd_debug => ( isa => GlobRef, rw, required );
 
 =attr fd_dot_trace
 
@@ -96,7 +96,7 @@ my $format = "%s%s\n >> %s\n >  %s%s\n";
 sub _message {
   my ( $self, $colour, $label, $line, $reason ) = @_;
   $line =~ s/\n?$//;
-  $self->fd_debug->printf( $format, color($colour), $label, $line, $reason, color('reset') );
+  return $self->fd_debug->printf( $format, color($colour), $label, $line, $reason, color('reset') );
 
 }
 
@@ -113,7 +113,7 @@ sub skip_empty {
   my ( $self, $lineno, $line ) = @_;
   $self->dot_trace('>');
   return unless $self->show_skip_empty;
-  $self->_message( 'red', "Skipping $lineno", $line, "Looks empty" );
+  return $self->_message( 'red', "Skipping $lineno", $line, "Looks empty" );
 }
 
 =method skip_star
@@ -131,7 +131,7 @@ sub skip_star {
   my ( $self, $lineno, $line ) = @_;
   $self->dot_trace('>');
   return unless $self->show_skip_star;
-  $self->_message( 'red', "Skipping $lineno", $line, "* rule" );
+  return $self->_message( 'red', "Skipping $lineno", $line, "* rule" );
 }
 
 =method dot_trace
@@ -145,8 +145,8 @@ Prints a simple progress indicator when show_dot_trace is enabled.
 sub dot_trace {
   my ( $self, $symbol ) = @_;
   return unless $self->show_dot_trace;
-  $symbol ||= '.';
-  $self->fd_dot_trace->print($symbol);
+  $symbol ||= q{.};
+  return $self->fd_dot_trace->print($symbol);
 }
 
 =method nomatch
@@ -162,9 +162,9 @@ Just In case, this line is also copied to the rejects file.
 
 sub nomatch {
   my ( $self, $lineno, $line ) = @_;
-  $self->dot_trace('?');
+  $self->dot_trace(q{?});
   return unless $self->show_clean;
-  $self->_message( 'green', "Cleaning $lineno", $line, 'No matching specification' );
+  return $self->_message( 'green', "Cleaning $lineno", $line, 'No matching specification' );
 }
 
 =method full_rule
@@ -173,16 +173,20 @@ sub nomatch {
 
     $ui->full_rule( $spec, \@useflags, \%extrasmap )
 
-Prduces a debug tracing line showing the parsed result of the line as we perceive it internally.
+Produces a debug tracing line showing the parsed result of the line as we perceive it internally.
 
 =cut
+
 sub full_rule {
   my ( $self, $spec, $use, $extras ) = @_;
   return unless $self->show_rules;
   $extras->{'use'} = $use;
-  my @extradata = map { sprintf "%s = [ %s ]", $_, join( ', ', @{ $extras->{$_} } ) } keys %$extras;
-  $self->fd_debug->printf( "RULE: spec = $spec %s\n", join( ' ', @extradata ) );
+  my @extradata = map { ( sprintf "%s = [ %s ]", $_, ( join q{, }, @{ $extras->{$_} } ) ) } keys %{$extras};
+  return $self->fd_debug->printf( "RULE: spec = $spec %s\n", ( join q{ }, @extradata ) );
 
 }
+
+no Moose;
+__PACKAGE__->meta->make_immutable;
 
 1;
