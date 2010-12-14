@@ -3,11 +3,11 @@ use strict;
 use warnings;
 
 package # Hide from PAUSE
-    Gentoo::Paludis::UseCleaner::App::Stub;
+    Paludis::UseCleaner::App::Stub;
 
-require Gentoo::Paludis::UseCleaner::App;
+require Paludis::UseCleaner::App;
 
-Gentoo::Paludis::UseCleaner::App::run();
+Paludis::UseCleaner::App::run();
 
 
 

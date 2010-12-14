@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-package Gentoo::Paludis::UseCleaner::ConsoleUI;
+package Paludis::UseCleaner::ConsoleUI;
 
 use Moose;
 use MooseX::Types::Moose qw( :all );

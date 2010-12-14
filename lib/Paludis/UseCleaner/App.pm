@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-package Gentoo::Paludis::UseCleaner::App;
+package Paludis::UseCleaner::App;
 use Getopt::Lucid qw( :all );
 
 sub run {
@@ -130,13 +130,23 @@ sub run {
     $display_args{show_clean}      = 1;
     $display_args{show_rules}      = 1;
   }
-  require Gentoo::Paludis::UseCleaner::ConsoleUI;
 
-  $flags{display_ui} = Gentoo::Paludis::UseCleaner::ConsoleUI->new( \%display_args );
+  $flags{display_ui_generator} = sub {
+        my $self = shift;
+        require Class::Load;
+        Class::Load->VERSION(0.06);
+        Class::Load::load_class( $self->display_ui_class );
+        return $self->display_ui_class->new(
+            %display_args,
+            fd_debug => $self->debug,
+            fd_dot_trace => $self->dot_trace,
+        );
 
-  require Gentoo::Paludis::UseCleaner;
-
-  my $cleaner = Gentoo::Paludis::UseCleaner->new( \%flags );
+  };
+  require Class::Load;
+  Class::Load->VERSION(0.06);
+  Class::Load::load_class('Paludis::UseCleaner');
+  my $cleaner = Paludis::UseCleaner->new( \%flags );
 
   return $cleaner->do_work();
 }

@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-package Gentoo::Paludis::UseCleaner;
+package Paludis::UseCleaner;
 
 use Moose;
 use MooseX::Types::Moose qw( :all );
@@ -9,17 +9,18 @@ use MooseX::Types::Perl qw( :all );
 use Cave::Wrapper;
 use namespace::autoclean -also => qr/^__/;
 use IO::Handle;
-use Class::Load qw( load_class );
+use Class::Load 0.06 qw( load_class );
 use Moose::Util::TypeConstraints qw( class_type );
 use MooseX::Has::Sugar;
 
-has 'input'            => ( isa => GlobRef,    rw, required );
-has 'output'           => ( isa => GlobRef,    rw, required );
-has 'rejects'          => ( isa => GlobRef,    rw, required );
-has 'debug'            => ( isa => GlobRef,    rw, required );
-has 'dot_trace'        => ( isa => GlobRef,    rw, required );
-has 'display_ui'       => ( isa => Object,     rw, lazy_build );
-has 'display_ui_class' => ( isa => ModuleName, rw, lazy_build );
+has 'input'                => ( isa => GlobRef,    rw, required );
+has 'output'               => ( isa => GlobRef,    rw, required );
+has 'rejects'              => ( isa => GlobRef,    rw, required );
+has 'debug'                => ( isa => GlobRef,    rw, required );
+has 'dot_trace'            => ( isa => GlobRef,    rw, required );
+has 'display_ui'           => ( isa => Object,     rw, lazy_build );
+has 'display_ui_class'     => ( isa => ModuleName, rw, lazy_build );
+has 'display_ui_generator' => ( isa => CodeRef,    rw, lazy_build );
 
 sub do_work {
 
@@ -50,7 +51,7 @@ sub do_work {
 
     $self->display_ui->full_rule( $spec, $use, $extras );
 
-    my @packages = $cave->print_ids('-m',$spec);
+    my @packages = $cave->print_ids( '-m', $spec );
 
     if ( not @packages ) {
       $self->display_ui->nomatch( $lineno, $line );
@@ -77,16 +78,23 @@ sub __is_star_rule {
 }
 
 sub _build_display_ui_class {
-  return 'Gentoo::Paludis::UseCleaner::ConsoleUI';
+  return 'Paludis::UseCleaner::ConsoleUI';
+}
+
+sub _build_display_ui_generator {
+  my $self = shift;
+  return sub {
+    load_class( $self->display_ui_class );
+    return $self->display_ui_class->new(
+      fd_debug     => $self->debug,
+      fd_dot_trace => $self->dot_trace,
+    );
+  };
 }
 
 sub _build_display_ui {
   my $self = shift;
-  load_class( $self->display_ui_class );
-  return $self->display_ui_class->new(
-    fd_debug     => $self->debug,
-    fd_dot_trace => $self->dot_trace,
-  );
+  return $self->display_ui_generator()->($self);
 }
 
 sub __tokenparse {
@@ -118,13 +126,4 @@ sub __extract_label {
   return $result;
 }
 
-sub __get_matching_packages {
-  my $spec = shift;
-  my @out;
-  open my $fh, '-|', 'cave', 'print-ids', '-m', $spec
-    or die "Can't call cave print-ids, $@ $? $!";
-  @out = <$fh>;
-  chomp for @out;
-  return @out;
-}
 1;
