@@ -6,6 +6,7 @@ package Gentoo::Paludis::UseCleaner;
 use Moose;
 use MooseX::Types::Moose qw( :all );
 use MooseX::Types::Perl qw( :all );
+use Cave::Wrapper;
 use namespace::autoclean -also => qr/^__/;
 use IO::Handle;
 use Class::Load qw( load_class );
@@ -23,6 +24,7 @@ has 'display_ui_class' => ( isa => ModuleName, rw, lazy_build );
 sub do_work {
 
   my ($self) = shift;
+  my $cave = Cave::Wrapper->new();
 
   $self->dot_trace->autoflush(1);
 
@@ -48,7 +50,7 @@ sub do_work {
 
     $self->display_ui->full_rule( $spec, $use, $extras );
 
-    my @packages = __get_matching_packages($spec);
+    my @packages = $cave->print_ids('-m',$spec);
 
     if ( not @packages ) {
       $self->display_ui->nomatch( $lineno, $line );
