@@ -6,6 +6,65 @@ package Paludis::UseCleaner::App;
 
 # ABSTRACT: Command Line App Interface to Paludis::UseCleaner
 
+=head1 SYNOPSIS
+
+This is really just a huge wrapper around L<Getopt::Lucid>
+which sets up L<Paludis::UseCleaner> in a friendly way.
+
+    @ARGV=qw( --command -l -i -n -e --arguments );
+    use Paludis::UseCleaner::App;
+
+    Paludis::UseCleaner::App->run();
+
+=head1 COMMAND LINE ARGUMENTS
+
+=head2 --output $file
+
+Set the file to write the cleaned use.conf to.
+
+Defaults as C</tmp/use.conf.out>.
+
+Use C<-> for C<STDOUT>.
+
+=head2 --rejects $file
+
+Set the file to write the rejected lines to.
+
+Defaults as C</tmp/use.conf.rej>.
+
+Use C<-> for C<STDERR>
+
+=head2 --conf
+
+Sets the file to read use.conf from,
+
+Defaults as C</etc/paludis/use.conf>
+
+Use C<-> for C<STDIN>
+
+=head2 --no-clobber-output
+
+If C<--output> exists, die instead of overwriting it.
+
+=head2 --no-clobber-rejects
+
+If C<--rejects> exists, die instead of overwriting it.
+
+=head2 --silent
+
+Print nothing debug related to stderr.
+
+=head2 --no-quiet
+
+Print verbose messages to stderr instead of a dot-trace
+
+=head2 --help
+
+Show a brief command line summary.
+
+=cut
+
+
 use Getopt::Lucid qw( :all );
 
 sub run {
