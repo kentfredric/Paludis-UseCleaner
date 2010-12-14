@@ -3,6 +3,9 @@ use strict;
 use warnings;
 
 package Paludis::UseCleaner::App;
+
+# ABSTRACT: Command Line App Interface to Paludis::UseCleaner
+
 use Getopt::Lucid qw( :all );
 
 sub run {

@@ -3,6 +3,8 @@ use warnings;
 
 package Paludis::UseCleaner;
 
+# ABSTRACT: Remove cruft from your use.conf
+
 use Moose;
 use MooseX::Types::Moose qw( :all );
 use MooseX::Types::Perl qw( :all );

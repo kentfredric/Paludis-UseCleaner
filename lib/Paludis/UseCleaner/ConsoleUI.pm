@@ -3,6 +3,8 @@ use warnings;
 
 package Paludis::UseCleaner::ConsoleUI;
 
+# ABSTRACT: SubSpace for handling progress formatting of the cleaner.
+
 use Moose;
 use MooseX::Types::Moose qw( :all );
 use MooseX::Types::Perl qw( :all );
