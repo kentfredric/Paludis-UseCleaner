@@ -1,0 +1,140 @@
+# NAME
+
+Paludis::UseCleaner - Remove cruft from your use.conf
+
+# VERSION
+
+version 0.01000308
+
+# SYNOPSIS
+
+This module handles the core behaviour of the Use Cleaner, to be consumed inside other applications.
+
+For a "Just Use it" interface, you want [paludis-usecleaner.pl](http://search.cpan.org/perldoc?paludis-usecleaner.pl) and [Paludis::UseCleaner::App](http://search.cpan.org/perldoc?Paludis::UseCleaner::App)
+
+    my $cleaner = Paludis::UseCleaner->new(
+        input     => somefd,
+        output    => somefd,
+        rejects   => somefd,
+        debug     => fd_for_debugging
+        dot_trace => fd_for_dot_traces,
+      ( # Optional
+        display_ui => $object_to_handle_debug_messages
+        display_ui_class => $classname_to_construct_a_display_ui
+        display_ui_generator => $coderef_to_generate_object_for_display_ui
+      )
+    );
+
+    $cleaner->do_work();
+
+# METHODS
+
+## do\_work
+
+    $cleaner->do_work();
+
+Executes the various transformations and produces the cleaned output from the input.
+
+# ATTRIBUTES
+
+## input
+
+    $cleaner->input( \*STDIN );
+    $cleaner->input( $read_fh );
+
+## output
+
+    $cleaner->output( \*STDOUT );
+    $cleaner->output( $write_fh );
+
+## rejects
+
+    $cleaner->rejects( \*STDOUT );
+    $cleaner->rejects( $write_fh );
+
+## debug
+
+    $cleaner->debug( \*STDERR );
+    $cleaner->debug( $write_fh );
+
+## dot\_trace
+
+    $cleaner->dot_trace( \*STDERR );
+    $cleaner->dot_trace( $write_fh );
+
+## display\_ui
+
+    $cleaner->display_ui( $object );
+
+## display\_ui\_class
+
+    $cleaner->display_ui_class( 'Some::Class::Name' );
+
+## display\_ui\_generator
+
+    $cleaner->display_ui_generator( sub {
+        my $self = shift;
+        ....
+        return $object;
+    });
+
+# PRIVATE METHODS
+
+## \_\_tokenize
+
+    my @line = __tokenize( $line );
+
+__STRIPPED__: This method is made invisible to outside code after compile.
+
+## \_\_is\_empty\_line
+
+    if( __is_empty_line(@line) ){ }
+
+__STRIPPED__: This method is made invisible to outside code after compile.
+
+## \_\_is\_star\_rule
+
+    if( __is_star_rule(@line) ){ }
+
+__STRIPPED__: This method is made invisible to outside code after compile.
+
+## \_\_tokenparse
+
+    my ( $spec, $use, $extras ) = __tokenparse( @line );
+
+__STRIPPED__: This method is made invisible to outside code after compile.
+
+## \_\_extract\_flags
+
+    my ( @flags ) = __extract_flags( \@tokens );
+
+__STRIPPED__: This method is made invisible to outside code after compile.
+
+## \_\_extract\_label
+
+    my ( $label ) = __extract_label( \@tokens );
+
+__STRIPPED__: This method is made invisible to outside code after compile.
+
+## \_build\_display\_ui\_class
+
+    my $class = $cleaner->_build_display_ui_class();
+
+## \_build\_display\_ui\_generator
+
+    my $generator  $cleaner->_build_display_ui_generator();
+
+## \_build\_display\_ui
+
+    my $object = $cleaner->_build_display_ui();
+
+# AUTHOR
+
+Kent Fredric <kentnl@cpan.org>
+
+# COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2013 by Kent Fredric <kentnl@cpan.org>.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
